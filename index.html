@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Learning — Interactive Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    header h1 { font-size: 2.4rem; color: #7eb8f7; margin-bottom: 0.4rem; }
+    header p  { color: #aaa; font-size: 1rem; }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: #12122a;
+      flex-wrap: wrap;
+    }
+    nav button {
+      padding: 0.5rem 1.2rem;
+      border: 1px solid #3a3a6a;
+      background: transparent;
+      color: #9ab;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    nav button:hover, nav button.active {
+      background: #7eb8f7;
+      color: #0f0f1a;
+      border-color: #7eb8f7;
+    }
+
+    .section {
+      display: none;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1.5rem 3rem;
+    }
+    .section.visible { display: block; }
+
+    h2 { font-size: 1.6rem; color: #7eb8f7; margin-bottom: 0.4rem; }
+    .subtitle { color: #888; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+    /* ── CARD ── */
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h3 { color: #aad4ff; margin-bottom: 0.8rem; font-size: 1.1rem; }
+
+    /* ── CANVAS WRAPPER ── */
+    .canvas-wrap {
+      width: 100%;
+      overflow-x: auto;
+      text-align: center;
+    }
+    canvas { display: block; margin: 0 auto; border-radius: 8px; }
+
+    /* ── CONTROLS ── */
+    .controls {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    .btn {
+      padding: 0.5rem 1.2rem;
+      background: #7eb8f7;
+      color: #0f0f1a;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #aad4ff; }
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid #3a3a6a;
+      color: #9ab;
+    }
+    .btn.secondary:hover { border-color: #7eb8f7; color: #7eb8f7; }
+
+    label { color: #9ab; font-size: 0.9rem; }
+    input[type=range] { accent-color: #7eb8f7; width: 120px; }
+    select {
+      background: #12122a;
+      border: 1px solid #3a3a6a;
+      color: #e0e0e0;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+    }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      background: #12122a;
+      border-left: 3px solid #7eb8f7;
+      padding: 0.8rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-top: 1rem;
+    }
+
+    /* ── ACTIVATION SECTION ── */
+    .act-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .act-card {
+      background: #12122a;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .act-card:hover, .act-card.selected { border-color: #7eb8f7; }
+    .act-card span { display: block; font-size: 0.8rem; color: #888; margin-top: 0.3rem; }
+
+    /* ── TRAINING ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── LOSS DISPLAY ── */
+    #lossDisplay {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #7eb8f7;
+    }
+    #epochDisplay { color: #888; font-size: 0.9rem; }
+
+    /* ── STEP EXPLAINER ── */
+    .steps { counter-reset: step; }
+    .step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      background: #7eb8f7;
+      color: #0f0f1a;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+    }
+    .step-text h4 { color: #aad4ff; margin-bottom: 0.2rem; }
+    .step-text p  { font-size: 0.9rem; color: #bbb; }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: #555;
+      font-size: 0.8rem;
+      border-top: 1px solid #1a1a2e;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Deep Learning — Interactive Guide</h1>
+  <p>University of Chicago &nbsp;|&nbsp; Civ Project 4</p>
+</header>
+
+<nav>
+  <button class="active" onclick="show('network')">1. Neural Network</button>
+  <button onclick="show('forward')">2. Forward Pass</button>
+  <button onclick="show('activation')">3. Activations</button>
+  <button onclick="show('training')">4. Training &amp; Loss</button>
+  <button onclick="show('howit')">5. How It Learns</button>
+  <button onclick="show('imgmatrix')">6. Image → Matrix</button>
+  <button onclick="show('arnolds')">7. Arnold's Cat Map</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 1 — NETWORK VISUALISER
+═══════════════════════════════════════════════════ -->
+<section id="network" class="section visible">
+  <h2>Neural Network Architecture</h2>
+  <p class="subtitle">A neural network is made of layers of nodes (neurons) connected by weighted edges.</p>
+
+  <div class="card">
+    <h3>Build Your Network</h3>
+    <div class="controls">
+      <label>Input neurons: <strong id="inVal">3</strong>
+        <input type="range" min="1" max="6" value="3" oninput="document.getElementById('inVal').textContent=this.value; drawNet()">
+      </label>
+      <label>Hidden layers: <strong id="hlVal">2</strong>
+        <input type="range" min="1" max="4" value="2" oninput="document.getElementById('hlVal').textContent=this.value; drawNet()">
+      </label>
+      <label>Neurons/layer: <strong id="hnVal">4</strong>
+        <input type="range" min="1" max="7" value="4" oninput="document.getElementById('hnVal').textContent=this.value; drawNet()">
+      </label>
+      <label>Output neurons: <strong id="outVal">2</strong>
+        <input type="range" min="1" max="5" value="2" oninput="document.getElementById('outVal').textContent=this.value; drawNet()">
+      </label>
+    </div>
+    <div class="canvas-wrap" style="margin-top:1rem;">
+      <canvas id="netCanvas" width="860" height="360"></canvas>
+    </div>
+    <div class="info-box">
+      <strong>Total parameters:</strong> <span id="paramCount"></span> &nbsp;|&nbsp;
+      Hover over the diagram to see layer details.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>What are neurons and weights?</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">N</div>
+        <div class="step-text">
+          <h4>Neuron</h4>
+          <p>A single computational unit. It receives inputs, multiplies each by a <em>weight</em>, sums them, adds a <em>bias</em>, then passes the result through an activation function.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">W</div>
+        <div class="step-text">
+          <h4>Weight</h4>
+          <p>A number on each connection that controls how strongly one neuron influences the next. Training <em>adjusts</em> weights to make predictions more accurate.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">L</div>
+        <div class="step-text">
+          <h4>Layer</h4>
+          <p>A group of neurons at the same depth. The <span style="color:#7eb8f7">input layer</span> receives raw data, <span style="color:#f7c97e">hidden layers</span> learn representations, and the <span style="color:#7ef7b8">output layer</span> produces the prediction.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 2 — FORWARD PASS ANIMATION
+═══════════════════════════════════════════════════ -->
+<section id="forward" class="section">
+  <h2>Forward Pass</h2>
+  <p class="subtitle">Watch how a signal travels from input to output through the network.</p>
+
+  <div class="card">
+    <h3>Signal Propagation</h3>
+    <div class="canvas-wrap">
+      <canvas id="fwdCanvas" width="860" height="340"></canvas>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="startForward()">&#9654; Run Forward Pass</button>
+      <button class="btn secondary" onclick="resetForward()">Reset</button>
+      <label>Speed:
+        <input type="range" id="fwdSpeed" min="1" max="10" value="5">
+      </label>
+    </div>
+    <div class="info-box" id="fwdInfo">Press <strong>Run Forward Pass</strong> to animate.</div>
+  </div>
+
+  <div class="card">
+    <h3>The Math Inside One Neuron</h3>
+    <div style="text-align:center; padding:1rem 0;">
+      <svg width="420" height="100" viewBox="0 0 420 100" style="max-width:100%">
+        <defs>
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#7eb8f7"/>
+          </marker>
+        </defs>
+        <!-- inputs -->
+        <text x="10" y="28"  fill="#9ab" font-size="13">x₁</text>
+        <text x="10" y="58"  fill="#9ab" font-size="13">x₂</text>
+        <text x="10" y="88"  fill="#9ab" font-size="13">x₃</text>
+        <line x1="30" y1="25"  x2="120" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <line x1="30" y1="55"  x2="120" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <line x1="30" y1="85"  x2="120" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <text x="55" y="38"  fill="#f7c97e" font-size="11">w₁</text>
+        <text x="55" y="55"  fill="#f7c97e" font-size="11">w₂</text>
+        <text x="55" y="72"  fill="#f7c97e" font-size="11">w₃</text>
+        <!-- sigma box -->
+        <rect x="120" y="28" width="60" height="44" rx="8" fill="#1a1a3a" stroke="#7eb8f7"/>
+        <text x="150" y="56" fill="#7eb8f7" font-size="20" text-anchor="middle">Σ</text>
+        <!-- + bias -->
+        <text x="192" y="44" fill="#aaa" font-size="11">+b</text>
+        <line x1="180" y1="50" x2="230" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <!-- act box -->
+        <rect x="230" y="28" width="70" height="44" rx="8" fill="#1a1a3a" stroke="#7ef7b8"/>
+        <text x="265" y="56" fill="#7ef7b8" font-size="13" text-anchor="middle">f(z)</text>
+        <line x1="300" y1="50" x2="360" y2="50" stroke="#7ef7b8" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="370" y="54" fill="#7ef7b8" font-size="13">output</text>
+        <text x="225" y="22" fill="#888" font-size="10">activation</text>
+      </svg>
+    </div>
+    <p style="font-size:0.9rem; color:#bbb; text-align:center;">
+      z = w₁x₁ + w₂x₂ + w₃x₃ + b &nbsp;&nbsp;→&nbsp;&nbsp; output = f(z)
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 3 — ACTIVATION FUNCTIONS
+═══════════════════════════════════════════════════ -->
+<section id="activation" class="section">
+  <h2>Activation Functions</h2>
+  <p class="subtitle">Activation functions add non-linearity — without them the network is just matrix multiplication.</p>
+
+  <div class="card">
+    <h3>Choose a function</h3>
+    <div class="act-grid" id="actGrid">
+      <div class="act-card selected" onclick="selectAct('relu',this)">
+        <strong>ReLU</strong><span>f(x) = max(0, x)</span>
+      </div>
+      <div class="act-card" onclick="selectAct('sigmoid',this)">
+        <strong>Sigmoid</strong><span>f(x) = 1/(1+e⁻ˣ)</span>
+      </div>
+      <div class="act-card" onclick="selectAct('tanh',this)">
+        <strong>Tanh</strong><span>f(x) = (eˣ−e⁻ˣ)/(eˣ+e⁻ˣ)</span>
+      </div>
+      <div class="act-card" onclick="selectAct('leakyrelu',this)">
+        <strong>Leaky ReLU</strong><span>f(x) = x&gt;0 ? x : 0.1x</span>
+      </div>
+      <div class="act-card" onclick="selectAct('softmax',this)">
+        <strong>Softmax*</strong><span>Output probabilities</span>
+      </div>
+    </div>
+    <div class="canvas-wrap" style="margin-top:1.2rem;">
+      <canvas id="actCanvas" width="500" height="280"></canvas>
+    </div>
+    <div class="info-box" id="actInfo">ReLU is the most widely used hidden-layer activation. Simple and avoids vanishing gradients.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 4 — TRAINING & LOSS
+═══════════════════════════════════════════════════ -->
+<section id="training" class="section">
+  <h2>Training &amp; Loss</h2>
+  <p class="subtitle">Training adjusts weights so the network's predictions get closer to the true labels.</p>
+
+  <div class="card">
+    <h3>Watch the Loss Curve</h3>
+    <div class="two-col">
+      <div>
+        <div class="controls" style="margin-bottom:0.8rem;">
+          <label>Learning rate:
+            <select id="lrSelect">
+              <option value="0.5">0.5 (high)</option>
+              <option value="0.1" selected>0.1 (good)</option>
+              <option value="0.01">0.01 (slow)</option>
+              <option value="0.001">0.001 (very slow)</option>
+            </select>
+          </label>
+        </div>
+        <div class="controls">
+          <button class="btn" onclick="startTraining()">&#9654; Train</button>
+          <button class="btn secondary" onclick="resetTraining()">Reset</button>
+        </div>
+        <div style="margin-top:1.2rem;">
+          <div id="epochDisplay">Epoch: 0</div>
+          <div>Loss: <span id="lossDisplay">—</span></div>
+          <div style="margin-top:0.6rem; color:#888; font-size:0.85rem;" id="trainMsg"></div>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="lossCanvas" width="380" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>What is Loss?</h3>
+    <p style="font-size:0.9rem; color:#bbb; margin-bottom:0.8rem;">
+      Loss measures the gap between the network's prediction and the correct answer. Common loss functions:
+    </p>
+    <div class="two-col" style="gap:0.8rem;">
+      <div style="background:#12122a; padding:0.9rem; border-radius:8px;">
+        <strong style="color:#aad4ff;">Mean Squared Error</strong>
+        <p style="font-size:0.85rem; color:#bbb; margin-top:0.3rem;">
+          L = (1/n) Σ (ŷ − y)²<br>Used for regression tasks.
+        </p>
+      </div>
+      <div style="background:#12122a; padding:0.9rem; border-radius:8px;">
+        <strong style="color:#aad4ff;">Cross-Entropy</strong>
+        <p style="font-size:0.85rem; color:#bbb; margin-top:0.3rem;">
+          L = −Σ y·log(ŷ)<br>Used for classification tasks.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 5 — HOW IT LEARNS (BACKPROP)
+═══════════════════════════════════════════════════ -->
+<section id="howit" class="section">
+  <h2>How the Network Learns</h2>
+  <p class="subtitle">Backpropagation + gradient descent: the engine behind all deep learning.</p>
+
+  <div class="card">
+    <h3>The Learning Loop</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <h4>Forward Pass</h4>
+          <p>Feed input data through the network layer by layer to produce a prediction.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <h4>Compute Loss</h4>
+          <p>Compare the prediction to the true label using a loss function. A bigger error = higher loss.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <h4>Backpropagation</h4>
+          <p>Use the chain rule to calculate how much each weight contributed to the error — these are the <em>gradients</em>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <h4>Gradient Descent</h4>
+          <p>Nudge every weight in the direction that reduces the loss:
+          <code style="color:#7ef7b8; font-size:0.9rem;">w ← w − η · ∂L/∂w</code>
+          where η is the learning rate.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-text">
+          <h4>Repeat</h4>
+          <p>Iterate over thousands of batches and epochs. Each pass sharpens the weights until the loss converges.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Gradient Descent — Loss Surface</h3>
+    <p style="font-size:0.9rem; color:#bbb; margin-bottom:1rem;">
+      Each ball represents a weight position on the loss landscape. Gradient descent rolls it downhill toward the minimum.
+    </p>
+    <div class="canvas-wrap">
+      <canvas id="gdCanvas" width="600" height="260"></canvas>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="startGD()">&#9654; Animate</button>
+      <button class="btn secondary" onclick="resetGD()">Reset</button>
+      <label>LR: <input type="range" id="gdLR" min="1" max="20" value="8" style="width:80px"></label>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 6 — IMAGE → MATRIX
+═══════════════════════════════════════════════════ -->
+<section id="imgmatrix" class="section">
+  <h2>Image → Matrix → Neural Network</h2>
+  <p class="subtitle">Every image is just a grid of numbers. Here's how pixels become the input vector a network sees.</p>
+
+  <div class="card">
+    <h3>Step 1 — Paint pixels on a mini canvas</h3>
+    <p style="font-size:0.9rem;color:#bbb;margin-bottom:0.8rem;">
+      Draw on the 8×8 grid below. Each cell is one pixel with a grayscale value 0–255.
+    </p>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">
+      <div>
+        <canvas id="pixelCanvas" width="256" height="256"
+          style="cursor:crosshair;border:2px solid #3a3a6a;border-radius:6px;touch-action:none;"></canvas>
+        <div class="controls" style="margin-top:0.6rem;">
+          <button class="btn" onclick="clearPixels()">Clear</button>
+          <button class="btn secondary" onclick="randomPixels()">Random</button>
+          <button class="btn secondary" onclick="drawSmiley()">Smiley</button>
+          <label style="margin-left:0.4rem;">Brush:
+            <input type="range" id="brushVal" min="0" max="255" value="200" style="width:80px">
+            <span id="brushNum">200</span>
+          </label>
+        </div>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <h4 style="color:#aad4ff;margin-bottom:0.5rem;">Pixel Matrix (8×8)</h4>
+        <div id="matrixDisplay" style="font-family:monospace;font-size:0.75rem;color:#7eb8f7;line-height:1.7;white-space:pre;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step 2 — Flatten into an input vector</h3>
+    <p style="font-size:0.9rem;color:#bbb;margin-bottom:0.8rem;">
+      The matrix is read row by row into a single vector of 64 numbers — the input layer of the network.
+      Each number is then normalised to the range [0, 1] by dividing by 255.
+    </p>
+    <div id="flatDisplay" style="font-family:monospace;font-size:0.78rem;color:#f7c97e;word-break:break-all;line-height:1.8;"></div>
+    <div class="info-box" style="margin-top:1rem;">
+      A real image (e.g. 28×28 MNIST digit) produces 784 inputs; a 224×224 RGB photo gives 150,528.
+      Convolutional layers learn spatial filters instead of flattening everything — but the principle is the same.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step 3 — Watch the values enter the network</h3>
+    <p style="font-size:0.9rem;color:#bbb;margin-bottom:0.8rem;">
+      The first 8 pixel values (one row) are shown entering a small demo network.
+    </p>
+    <div class="canvas-wrap">
+      <canvas id="imgNetCanvas" width="700" height="240"></canvas>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="animateImgNet()">&#9654; Animate Feed-in</button>
+      <button class="btn secondary" onclick="resetImgNet()">Reset</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 7 — ARNOLD'S CAT MAP
+═══════════════════════════════════════════════════ -->
+<section id="arnolds" class="section">
+  <h2>Arnold's Cat Map</h2>
+  <p class="subtitle">A chaotic map that scrambles an image — yet applying it enough times always returns the original.</p>
+
+  <div class="card">
+    <h3>The Map</h3>
+    <p style="font-size:0.9rem;color:#bbb;margin-bottom:0.6rem;">
+      For an N×N image, each pixel at (x, y) moves to:
+    </p>
+    <div style="text-align:center;padding:0.6rem 0 0.8rem;">
+      <code style="font-size:1.05rem;color:#7ef7b8;">
+        x' = (x + y) mod N<br>
+        y' = (x + 2y) mod N
+      </code>
+    </div>
+    <p style="font-size:0.9rem;color:#bbb;">
+      This is a linear map on the torus ℤ<sub>N</sub>×ℤ<sub>N</sub>.
+      Because the pixel grid is finite, the orbit of every starting state is periodic —
+      repeat the map enough times and every pixel returns home.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Demo — watch it scramble and recover</h3>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;">
+      <div>
+        <p style="font-size:0.85rem;color:#888;margin-bottom:0.5rem;">Source image (draw or use preset)</p>
+        <canvas id="catSrcCanvas" width="192" height="192"
+          style="cursor:crosshair;border:2px solid #3a3a6a;border-radius:6px;touch-action:none;"></canvas>
+        <div class="controls" style="margin-top:0.6rem;flex-wrap:wrap;">
+          <button class="btn secondary" onclick="catPresetFace()">Face</button>
+          <button class="btn secondary" onclick="catPresetGrid()">Grid</button>
+          <button class="btn secondary" onclick="catPresetText()">Text</button>
+          <button class="btn secondary" onclick="clearCatSrc()">Clear</button>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.85rem;color:#888;margin-bottom:0.5rem;">After <span id="catIterLabel">0</span> iteration(s)</p>
+        <canvas id="catOutCanvas" width="192" height="192"
+          style="border:2px solid #2a2a4a;border-radius:6px;"></canvas>
+        <div style="margin-top:0.5rem;font-size:0.8rem;color:#888;" id="catPeriodMsg"></div>
+      </div>
+      <div style="flex:1;min-width:180px;">
+        <p style="font-size:0.85rem;color:#aad4ff;margin-bottom:0.5rem;">Iteration history (thumbnails)</p>
+        <div id="catThumbs" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+      </div>
+    </div>
+    <div class="controls" style="margin-top:1rem;">
+      <button class="btn" id="catPlayBtn" onclick="catPlay()">&#9654; Play</button>
+      <button class="btn secondary" onclick="catStep()">Step +1</button>
+      <button class="btn secondary" onclick="catReset()">Reset</button>
+      <label>Speed:
+        <input type="range" id="catSpeed" min="1" max="10" value="5" style="width:80px">
+      </label>
+      <label style="margin-left:0.4rem;">Grid size:
+        <select id="catSize" onchange="catReset()">
+          <option value="24">24×24</option>
+          <option value="32" selected>32×32</option>
+          <option value="48">48×48</option>
+          <option value="64">64×64</option>
+        </select>
+      </label>
+    </div>
+    <div class="info-box" style="margin-top:1rem;" id="catInfo">
+      Press <strong>Play</strong> to animate. The period (number of steps to full recovery) depends on N.
+      For N=32 it is 24; for N=48 it is 16; for N=64 it is 48.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Period vs. Grid Size</h3>
+    <div class="canvas-wrap">
+      <canvas id="catPeriodCanvas" width="640" height="200"></canvas>
+    </div>
+    <p style="font-size:0.85rem;color:#bbb;margin-top:0.8rem;">
+      The period is not monotone in N — small changes in grid size can give wildly different periods.
+      This sensitivity is a hallmark of the underlying chaotic dynamics.
+    </p>
+  </div>
+</section>
+
+<footer>University of Chicago &nbsp;|&nbsp; Civ Project 4 — Deep Learning</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  $(id).classList.add('visible');
+  event.currentTarget.classList.add('active');
+  if (id === 'network')    drawNet();
+  if (id === 'forward')    initForward();
+  if (id === 'activation') drawAct();
+  if (id === 'training')   initTraining();
+  if (id === 'howit')      drawGD();
+  if (id === 'imgmatrix')  { renderPixelCanvas(); updateMatrixDisplay(); }
+  if (id === 'arnolds')    { catReset(); }
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 1 — NETWORK DRAW
+═══════════════════════════════════════════ */
+function getNetConfig() {
+  const inp = +$('inVal').textContent;
+  const hl  = +$('hlVal').textContent;
+  const hn  = +$('hnVal').textContent;
+  const out = +$('outVal').textContent;
+  const layers = [inp, ...Array(hl).fill(hn), out];
+  return layers;
+}
+
+function drawNet() {
+  const canvas = $('netCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const layers = getNetConfig();
+  const R = 14;
+  const layerX = layers.map((_, i) => 60 + i * ((W - 120) / (layers.length - 1)));
+
+  // compute params
+  let params = 0;
+  for (let i = 1; i < layers.length; i++) params += layers[i-1] * layers[i] + layers[i];
+  $('paramCount').textContent = params.toLocaleString() + ' weights & biases';
+
+  const colors = ['#7eb8f7', ...Array(layers.length - 2).fill('#f7c97e'), '#7ef7b8'];
+
+  // draw edges
+  ctx.globalAlpha = 0.18;
+  ctx.lineWidth = 1;
+  for (let l = 0; l < layers.length - 1; l++) {
+    const x1 = layerX[l], x2 = layerX[l+1];
+    const n1 = layers[l], n2 = layers[l+1];
+    for (let a = 0; a < n1; a++) {
+      const y1 = H/2 + (a - (n1-1)/2) * Math.min(50, (H-60)/n1);
+      for (let b = 0; b < n2; b++) {
+        const y2 = H/2 + (b - (n2-1)/2) * Math.min(50, (H-60)/n2);
+        ctx.strokeStyle = '#7eb8f7';
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // draw nodes
+  for (let l = 0; l < layers.length; l++) {
+    const n = layers[l];
+    const x = layerX[l];
+    for (let i = 0; i < n; i++) {
+      const y = H/2 + (i - (n-1)/2) * Math.min(50, (H-60)/n);
+      ctx.beginPath(); ctx.arc(x, y, R, 0, TAU);
+      ctx.fillStyle = colors[l] + '33';
+      ctx.fill();
+      ctx.strokeStyle = colors[l];
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    // label
+    const labels = ['Input', ...Array(layers.length-2).fill('').map((_,i)=>`H${i+1}`), 'Output'];
+    ctx.fillStyle = colors[l];
+    ctx.font = '11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[l], x, H - 8);
+    ctx.fillStyle = '#666';
+    ctx.fillText(layers[l] + (layers[l]===1?' neuron':' neurons'), x, H - 22 + (l%2)*12);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 2 — FORWARD PASS ANIMATION
+═══════════════════════════════════════════ */
+const FW_LAYERS = [3, 4, 4, 2];
+let fwdAnim = null, fwdStep = -1, fwdSignals = [];
+
+function getNeuronPos(canvas, layers, l, i) {
+  const W = canvas.width, H = canvas.height;
+  const x = 70 + l * ((W - 140) / (layers.length - 1));
+  const spacing = Math.min(55, (H - 60) / layers[l]);
+  const y = H/2 + (i - (layers[l]-1)/2) * spacing;
+  return {x, y};
+}
+
+function drawFwdBase(ctx, canvas, layers, activeLayer = -1, signals = []) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const colors = ['#7eb8f7', '#f7c97e', '#f7c97e', '#7ef7b8'];
+
+  // edges
+  for (let l = 0; l < layers.length - 1; l++) {
+    for (let a = 0; a < layers[l]; a++) {
+      const p1 = getNeuronPos(canvas, layers, l, a);
+      for (let b = 0; b < layers[l+1]; b++) {
+        const p2 = getNeuronPos(canvas, layers, l+1, b);
+        const active = activeLayer === l;
+        ctx.globalAlpha = active ? 0.7 : 0.12;
+        ctx.strokeStyle = active ? '#7eb8f7' : '#7eb8f7';
+        ctx.lineWidth = active ? 1.5 : 1;
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // nodes
+  for (let l = 0; l < layers.length; l++) {
+    for (let i = 0; i < layers[l]; i++) {
+      const {x, y} = getNeuronPos(canvas, layers, l, i);
+      const lit = l <= activeLayer;
+      ctx.beginPath(); ctx.arc(x, y, 14, 0, TAU);
+      ctx.fillStyle = lit ? colors[l] + '55' : colors[l] + '22';
+      ctx.fill();
+      ctx.strokeStyle = colors[l];
+      ctx.lineWidth = lit ? 2.5 : 1.5;
+      ctx.stroke();
+    }
+  }
+
+  // animated signals
+  signals.forEach(s => {
+    ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, TAU);
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = s.alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // labels
+  const lnames = ['Input', 'Hidden 1', 'Hidden 2', 'Output'];
+  for (let l = 0; l < layers.length; l++) {
+    const {x} = getNeuronPos(canvas, layers, l, 0);
+    ctx.fillStyle = colors[l];
+    ctx.font = '11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(lnames[l], x, H - 8);
+  }
+}
+
+function initForward() {
+  const canvas = $('fwdCanvas');
+  const ctx = canvas.getContext('2d');
+  drawFwdBase(ctx, canvas, FW_LAYERS);
+}
+
+function resetForward() {
+  clearTimeout(fwdAnim);
+  fwdStep = -1; fwdSignals = [];
+  const canvas = $('fwdCanvas');
+  drawFwdBase(canvas.getContext('2d'), canvas, FW_LAYERS);
+  $('fwdInfo').innerHTML = 'Press <strong>Run Forward Pass</strong> to animate.';
+}
+
+const fwdMessages = [
+  'Step 1: Raw input data enters the input layer (e.g. pixel values, features).',
+  'Step 2: Signals propagate to Hidden Layer 1 — each neuron computes Σ(wᵢxᵢ)+b then applies f(z).',
+  'Step 3: Hidden Layer 2 extracts higher-level patterns from layer 1 activations.',
+  'Step 4: The output layer produces the final prediction (e.g. class probabilities).'
+];
+
+function startForward() {
+  clearTimeout(fwdAnim);
+  fwdStep = 0;
+  animateForwardStep();
+}
+
+function animateForwardStep() {
+  const canvas = $('fwdCanvas');
+  const ctx = canvas.getContext('2d');
+  if (fwdStep >= FW_LAYERS.length) {
+    drawFwdBase(ctx, canvas, FW_LAYERS, FW_LAYERS.length - 1);
+    $('fwdInfo').innerHTML = '<strong>Done!</strong> The forward pass is complete. Output is ready.';
+    return;
+  }
+  $('fwdInfo').innerHTML = fwdMessages[fwdStep] || '';
+  const speed = 11 - +$('fwdSpeed').value;
+  let t = 0;
+  const from = fwdStep - 1;
+  const to   = fwdStep;
+
+  function frame() {
+    t++;
+    const sigs = [];
+    if (from >= 0) {
+      for (let a = 0; a < FW_LAYERS[from]; a++) {
+        for (let b = 0; b < FW_LAYERS[to]; b++) {
+          const p1 = getNeuronPos(canvas, FW_LAYERS, from, a);
+          const p2 = getNeuronPos(canvas, FW_LAYERS, to, b);
+          const prog = Math.min(t / 30, 1);
+          sigs.push({
+            x: p1.x + (p2.x - p1.x) * prog,
+            y: p1.y + (p2.y - p1.y) * prog,
+            alpha: 1 - prog * 0.5
+          });
+        }
+      }
+    }
+    drawFwdBase(ctx, canvas, FW_LAYERS, fwdStep, sigs);
+    if (t < 35) {
+      fwdAnim = setTimeout(frame, speed * 8);
+    } else {
+      fwdStep++;
+      fwdAnim = setTimeout(animateForwardStep, 400);
+    }
+  }
+  frame();
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 3 — ACTIVATION FUNCTIONS
+═══════════════════════════════════════════ */
+let currentAct = 'relu';
+
+const actFns = {
+  relu:      { fn: x => Math.max(0, x),               info: 'ReLU is default for hidden layers. Fast, no vanishing gradient for x>0. Dying ReLU can occur.' },
+  sigmoid:   { fn: x => 1/(1+Math.exp(-x)),            info: 'Sigmoid squashes output to (0,1). Good for binary output. Suffers from vanishing gradients in deep nets.' },
+  tanh:      { fn: x => Math.tanh(x),                  info: 'Tanh is zero-centered (−1,1). Often better than sigmoid in hidden layers.' },
+  leakyrelu: { fn: x => x > 0 ? x : 0.1*x,            info: 'Leaky ReLU fixes the dying neuron problem by allowing a small negative slope.' },
+  softmax:   { fn: x => 1/(1+Math.exp(-x)),            info: '*Softmax is a layer-wide operation (shown here as sigmoid shape). Converts logits to probabilities summing to 1. Used in output layer for multi-class.' }
+};
+
+function selectAct(name, el) {
+  currentAct = name;
+  document.querySelectorAll('.act-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  drawAct();
+  $('actInfo').textContent = actFns[name].info;
+}
+
+function drawAct() {
+  const canvas = $('actCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const fn = actFns[currentAct].fn;
+  const xMin = -5, xMax = 5;
+  const yMin = -1.5, yMax = 1.5;
+
+  function toScreen(x, y) {
+    return {
+      sx: (x - xMin) / (xMax - xMin) * W,
+      sy: H - (y - yMin) / (yMax - yMin) * H
+    };
+  }
+
+  // grid
+  ctx.strokeStyle = '#2a2a4a'; ctx.lineWidth = 1;
+  for (let x = xMin; x <= xMax; x++) {
+    const {sx} = toScreen(x, 0);
+    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+  }
+  for (let y = -1; y <= 1; y += 0.5) {
+    const {sy} = toScreen(0, y);
+    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
+  }
+
+  // axes
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+  const ox = toScreen(0, 0);
+  ctx.beginPath(); ctx.moveTo(0, ox.sy); ctx.lineTo(W, ox.sy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox.sx, 0); ctx.lineTo(ox.sx, H); ctx.stroke();
+
+  // axis labels
+  ctx.fillStyle = '#555'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+  for (let x = xMin+1; x < xMax; x++) {
+    const {sx, sy} = toScreen(x, 0);
+    ctx.fillText(x, sx, sy + 14);
+  }
+
+  // function curve
+  ctx.beginPath();
+  ctx.strokeStyle = '#7eb8f7'; ctx.lineWidth = 2.5;
+  for (let px = 0; px <= W; px++) {
+    const x = xMin + (px / W) * (xMax - xMin);
+    const y = fn(x);
+    const {sx, sy} = toScreen(x, Math.max(yMin, Math.min(yMax, y)));
+    px === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+
+  // derivative curve (dashed)
+  ctx.beginPath();
+  ctx.strokeStyle = '#f7c97e'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 4]);
+  const dx = 0.01;
+  for (let px = 0; px <= W; px++) {
+    const x = xMin + (px / W) * (xMax - xMin);
+    const dy = (fn(x + dx) - fn(x - dx)) / (2 * dx);
+    const {sx, sy} = toScreen(x, Math.max(yMin, Math.min(yMax, dy)));
+    px === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // legend
+  ctx.fillStyle = '#7eb8f7'; ctx.textAlign = 'left';
+  ctx.fillText('f(x)', 10, 20);
+  ctx.fillStyle = '#f7c97e';
+  ctx.fillText("f'(x) gradient", 10, 36);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 4 — TRAINING / LOSS
+═══════════════════════════════════════════ */
+let trainInterval = null, trainEpoch = 0, lossHistory = [];
+const TRUE_MIN_LOSS = 0.04;
+
+function lossForEpoch(epoch, lr) {
+  return TRUE_MIN_LOSS + (2.4 - TRUE_MIN_LOSS) * Math.exp(-lr * epoch * 0.035)
+       + (Math.random() - 0.5) * 0.04 * Math.exp(-epoch * 0.02);
+}
+
+function initTraining() {
+  trainEpoch = 0; lossHistory = [];
+  drawLossCanvas([]);
+  $('epochDisplay').textContent = 'Epoch: 0';
+  $('lossDisplay').textContent = '—';
+  $('trainMsg').textContent = '';
+}
+
+function resetTraining() {
+  clearInterval(trainInterval);
+  initTraining();
+}
+
+function startTraining() {
+  clearInterval(trainInterval);
+  if (trainEpoch > 0) initTraining();
+  const lr = +$('lrSelect').value;
+  trainInterval = setInterval(() => {
+    trainEpoch++;
+    const loss = lossForEpoch(trainEpoch, lr);
+    lossHistory.push(loss);
+    $('epochDisplay').textContent = `Epoch: ${trainEpoch}`;
+    $('lossDisplay').textContent = loss.toFixed(4);
+    if (trainEpoch === 1)  $('trainMsg').textContent = 'Training started...';
+    if (trainEpoch === 30) $('trainMsg').textContent = 'Loss decreasing nicely.';
+    if (trainEpoch === 80) $('trainMsg').textContent = 'Approaching convergence.';
+    if (trainEpoch >= 120) {
+      $('trainMsg').textContent = 'Converged!';
+      clearInterval(trainInterval);
+    }
+    drawLossCanvas(lossHistory);
+  }, 80);
+}
+
+function drawLossCanvas(history) {
+  const canvas = $('lossCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = {l:40, r:15, t:15, b:30};
+  const iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+
+  // axes
+  ctx.strokeStyle = '#3a3a6a'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b); ctx.stroke();
+
+  if (history.length < 2) {
+    ctx.fillStyle = '#555'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('Press Train to see loss curve', W/2, H/2);
+    return;
+  }
+
+  const maxL = Math.max(...history) * 1.1;
+  const N = history.length;
+
+  // grid lines
+  ctx.strokeStyle = '#1e1e3a'; ctx.lineWidth = 1;
+  for (let y = 0; y <= 1; y += 0.25) {
+    const sy = pad.t + iH * (1 - y / maxL * maxL);
+    ctx.beginPath(); ctx.moveTo(pad.l, pad.t + iH*(1-y)); ctx.lineTo(W-pad.r, pad.t+iH*(1-y)); ctx.stroke();
+  }
+
+  // curve
+  ctx.beginPath();
+  ctx.strokeStyle = '#7eb8f7'; ctx.lineWidth = 2;
+  history.forEach((l, i) => {
+    const sx = pad.l + (i / (N-1 || 1)) * iW;
+    const sy = pad.t + iH * (1 - l / maxL);
+    i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  });
+  ctx.stroke();
+
+  // fill under
+  ctx.lineTo(pad.l + ((N-1)/(N-1||1))*iW, H-pad.b);
+  ctx.lineTo(pad.l, H-pad.b);
+  ctx.closePath();
+  ctx.fillStyle = '#7eb8f720';
+  ctx.fill();
+
+  // labels
+  ctx.fillStyle = '#666'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'right';
+  ctx.fillText(maxL.toFixed(1), pad.l - 4, pad.t + 4);
+  ctx.fillText('0', pad.l - 4, H - pad.b + 4);
+  ctx.textAlign = 'center';
+  ctx.fillText('Loss', pad.l - 28, H/2 - 20);
+  ctx.fillText('Epoch', W/2, H - 4);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 5 — GRADIENT DESCENT BALL
+═══════════════════════════════════════════ */
+let gdAnim = null, gdBall = null;
+
+function lossSurface(x) {
+  return 2.5 * Math.pow(Math.sin(x * 0.8 + 0.5), 2) + 0.5 * Math.pow(x - 1.5, 2) * 0.15 + 0.3;
+}
+function lossSurfaceDeriv(x) {
+  const dx = 0.001;
+  return (lossSurface(x + dx) - lossSurface(x - dx)) / (2 * dx);
+}
+
+function drawGD() {
+  const canvas = $('gdCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const xMin = -4, xMax = 6;
+  const yMin = 0, yMax = 4;
+  function toS(x, y) {
+    return { sx: (x - xMin)/(xMax-xMin)*W, sy: H - (y - yMin)/(yMax-yMin)*H };
+  }
+
+  // surface
+  ctx.beginPath();
+  ctx.strokeStyle = '#7eb8f7'; ctx.lineWidth = 2.5;
+  for (let px = 0; px <= W; px++) {
+    const x = xMin + (px/W)*(xMax-xMin);
+    const y = lossSurface(x);
+    const {sx, sy} = toS(x, Math.min(yMax, y));
+    px === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+
+  // fill under
+  const {sx: exSx, sy: exSy} = toS(xMax, 0);
+  const {sx: stSx, sy: stSy} = toS(xMin, 0);
+  ctx.lineTo(exSx, H); ctx.lineTo(stSx, H); ctx.closePath();
+  ctx.fillStyle = '#7eb8f712'; ctx.fill();
+
+  // axis labels
+  ctx.fillStyle = '#7eb8f7'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('Loss', 4, 16);
+  ctx.fillStyle = '#555'; ctx.textAlign = 'center';
+  ctx.fillText('Weight value →', W/2, H - 4);
+
+  // ball
+  if (gdBall) {
+    const {sx, sy} = toS(gdBall.x, lossSurface(gdBall.x));
+    // trail
+    if (gdBall.trail) {
+      gdBall.trail.forEach((t, i) => {
+        const {sx: tx, sy: ty} = toS(t.x, lossSurface(t.x));
+        ctx.beginPath(); ctx.arc(tx, ty, 3, 0, TAU);
+        ctx.fillStyle = `rgba(126,184,247,${0.1 + 0.5*(i/gdBall.trail.length)})`;
+        ctx.fill();
+      });
+    }
+    // shadow
+    ctx.beginPath(); ctx.arc(sx, sy + 6, 10, 0, TAU);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fill();
+    // ball
+    const grad = ctx.createRadialGradient(sx-3, sy-3, 1, sx, sy, 10);
+    grad.addColorStop(0, '#fff');
+    grad.addColorStop(1, '#f7c97e');
+    ctx.beginPath(); ctx.arc(sx, sy, 10, 0, TAU);
+    ctx.fillStyle = grad; ctx.fill();
+  }
+}
+
+function resetGD() {
+  clearInterval(gdAnim);
+  gdBall = null;
+  drawGD();
+}
+
+function startGD() {
+  clearInterval(gdAnim);
+  gdBall = { x: -3.2, trail: [] };
+  let iter = 0;
+  gdAnim = setInterval(() => {
+    const lr = +$('gdLR').value * 0.004;
+    const grad = lossSurfaceDeriv(gdBall.x);
+    gdBall.trail.push({ x: gdBall.x });
+    if (gdBall.trail.length > 60) gdBall.trail.shift();
+    gdBall.x -= lr * grad;
+    gdBall.x = Math.max(-4, Math.min(6, gdBall.x));
+    drawGD();
+    iter++;
+    if (iter > 200 || Math.abs(grad) < 0.005) clearInterval(gdAnim);
+  }, 40);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 6 — IMAGE → MATRIX
+═══════════════════════════════════════════ */
+const GRID = 8;
+let pixelData = Array.from({length: GRID}, () => new Array(GRID).fill(0));
+let isDrawing = false;
+
+function initPixelCanvas() {
+  const canvas = $('pixelCanvas');
+  const cellW = canvas.width / GRID;
+
+  function getCell(e) {
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.clientX ?? e.touches[0].clientX) - r.left;
+    const cy = (e.clientY ?? e.touches[0].clientY) - r.top;
+    return { col: Math.floor(cx / cellW), row: Math.floor(cy / cellW) };
+  }
+  function paint(e) {
+    e.preventDefault();
+    const {col, row} = getCell(e);
+    if (row < 0 || row >= GRID || col < 0 || col >= GRID) return;
+    const v = +$('brushVal').value;
+    pixelData[row][col] = v;
+    renderPixelCanvas();
+    updateMatrixDisplay();
+  }
+  canvas.addEventListener('mousedown',  e => { isDrawing = true;  paint(e); });
+  canvas.addEventListener('mousemove',  e => { if (isDrawing) paint(e); });
+  canvas.addEventListener('mouseup',    () => isDrawing = false);
+  canvas.addEventListener('mouseleave', () => isDrawing = false);
+  canvas.addEventListener('touchstart', e => { isDrawing = true;  paint(e); });
+  canvas.addEventListener('touchmove',  e => { if (isDrawing) paint(e); });
+  canvas.addEventListener('touchend',   () => isDrawing = false);
+  $('brushVal').addEventListener('input', () => $('brushNum').textContent = $('brushVal').value);
+}
+
+function renderPixelCanvas() {
+  const canvas = $('pixelCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, cell = W / GRID;
+  ctx.clearRect(0, 0, W, W);
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      const v = pixelData[r][c];
+      ctx.fillStyle = `rgb(${v},${v},${v})`;
+      ctx.fillRect(c * cell, r * cell, cell, cell);
+    }
+  }
+  // grid lines
+  ctx.strokeStyle = '#3a3a6a'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= GRID; i++) {
+    ctx.beginPath(); ctx.moveTo(i * cell, 0); ctx.lineTo(i * cell, W); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i * cell); ctx.lineTo(W, i * cell); ctx.stroke();
+  }
+  // value labels
+  ctx.font = `${Math.floor(cell * 0.28)}px monospace`;
+  ctx.textAlign = 'center';
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      const v = pixelData[r][c];
+      ctx.fillStyle = v > 128 ? '#000' : '#666';
+      ctx.fillText(v, c * cell + cell / 2, r * cell + cell * 0.62);
+    }
+  }
+}
+
+function updateMatrixDisplay() {
+  const lines = pixelData.map(row =>
+    '[' + row.map(v => String(v).padStart(3)).join(', ') + ']'
+  );
+  $('matrixDisplay').textContent = '[' + lines.join(',\n ') + ']';
+
+  const flat = pixelData.flat();
+  const norm = flat.map(v => (v / 255).toFixed(2));
+  $('flatDisplay').innerHTML =
+    '<span style="color:#888">flattened (raw):</span><br>' +
+    flat.join(', ') +
+    '<br><span style="color:#888">normalised ÷255:</span><br>' +
+    norm.join(', ');
+
+  drawImgNet(flat);
+}
+
+function clearPixels() {
+  pixelData = Array.from({length: GRID}, () => new Array(GRID).fill(0));
+  renderPixelCanvas(); updateMatrixDisplay();
+}
+
+function randomPixels() {
+  pixelData = Array.from({length: GRID}, () =>
+    Array.from({length: GRID}, () => Math.floor(Math.random() * 256))
+  );
+  renderPixelCanvas(); updateMatrixDisplay();
+}
+
+function drawSmiley() {
+  const s = [
+    [0,0,180,180,180,180,0,0],
+    [0,180,0,0,0,0,180,0],
+    [180,0,220,0,0,220,0,180],
+    [180,0,0,0,0,0,0,180],
+    [180,0,200,0,0,200,0,180],
+    [180,0,0,200,200,0,0,180],
+    [0,180,0,0,0,0,180,0],
+    [0,0,180,180,180,180,0,0]
+  ];
+  pixelData = s;
+  renderPixelCanvas(); updateMatrixDisplay();
+}
+
+/* img-net animation */
+let imgNetAnim = null, imgNetStep = -1;
+
+function drawImgNet(flat) {
+  const canvas = $('imgNetCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const inputs = flat.slice(0, 8).map(v => v / 255);
+  const layers = [8, 5, 3];
+  const colors = ['#7eb8f7', '#f7c97e', '#7ef7b8'];
+  const R = 13;
+
+  function pos(l, i) {
+    const xs = [80, 340, 580];
+    const spacing = Math.min(26, (H - 40) / layers[l]);
+    const y = H / 2 + (i - (layers[l] - 1) / 2) * spacing;
+    return { x: xs[l], y };
+  }
+
+  // edges
+  ctx.globalAlpha = 0.15;
+  for (let l = 0; l < layers.length - 1; l++) {
+    for (let a = 0; a < layers[l]; a++) {
+      for (let b = 0; b < layers[l + 1]; b++) {
+        const p1 = pos(l, a), p2 = pos(l + 1, b);
+        ctx.strokeStyle = colors[l + 1]; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // nodes with fill based on pixel value
+  for (let l = 0; l < layers.length; l++) {
+    for (let i = 0; i < layers[l]; i++) {
+      const { x, y } = pos(l, i);
+      const brightness = l === 0 ? inputs[i] : 0.3;
+      ctx.beginPath(); ctx.arc(x, y, R, 0, TAU);
+      ctx.fillStyle = l === 0
+        ? `rgba(${Math.round(brightness*200+55)},${Math.round(brightness*200+55)},${Math.round(brightness*255)},0.9)`
+        : colors[l] + '44';
+      ctx.fill();
+      ctx.strokeStyle = colors[l]; ctx.lineWidth = 2;
+      ctx.stroke();
+      if (l === 0) {
+        ctx.fillStyle = brightness > 0.5 ? '#000' : '#aaa';
+        ctx.font = '8px monospace'; ctx.textAlign = 'center';
+        ctx.fillText((inputs[i]).toFixed(2), x, y + 3);
+      }
+    }
+  }
+
+  // layer labels
+  const lnames = ['Input\n(pixels)', 'Hidden', 'Output'];
+  ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+  for (let l = 0; l < layers.length; l++) {
+    const { x } = pos(l, 0);
+    ctx.fillStyle = colors[l];
+    ctx.fillText(lnames[l].split('\n')[0], x, 14);
+    if (lnames[l].includes('\n')) ctx.fillText(lnames[l].split('\n')[1], x, 26);
+  }
+
+  // annotation
+  ctx.fillStyle = '#555'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('← 8 pixel values (row 1)', 8, H - 8);
+}
+
+function animateImgNet() {
+  clearInterval(imgNetAnim);
+  const flat = pixelData.flat();
+  let step = 0;
+  const canvas = $('imgNetCanvas');
+  const ctx = canvas.getContext('2d');
+  const layers = [8, 5, 3];
+
+  function pos(l, i) {
+    const xs = [80, 340, 580];
+    const H = canvas.height;
+    const spacing = Math.min(26, (H - 40) / layers[l]);
+    return { x: xs[l], y: H / 2 + (i - (layers[l] - 1) / 2) * spacing };
+  }
+
+  imgNetAnim = setInterval(() => {
+    drawImgNet(flat);
+    if (step < layers.length) {
+      const ctx2 = canvas.getContext('2d');
+      // pulse ring on active layer
+      for (let i = 0; i < layers[step]; i++) {
+        const { x, y } = pos(step, i);
+        ctx2.beginPath(); ctx2.arc(x, y, 18, 0, TAU);
+        ctx2.strokeStyle = '#fff'; ctx2.lineWidth = 1.5;
+        ctx2.globalAlpha = 0.4 + 0.4 * Math.sin(Date.now() / 200);
+        ctx2.stroke(); ctx2.globalAlpha = 1;
+      }
+    }
+    step = (step + 1) % (layers.length + 2);
+  }, 300);
+}
+
+function resetImgNet() {
+  clearInterval(imgNetAnim);
+  drawImgNet(pixelData.flat());
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 7 — ARNOLD'S CAT MAP
+═══════════════════════════════════════════ */
+let catPixels = null;   // Uint8Array flat RGBA, N×N
+let catCurrent = null;  // same after k iterations
+let catN = 32;
+let catIter = 0;
+let catPlaying = false;
+let catTimer = null;
+let catIsDrawing = false;
+
+/* known periods for small N (precomputed) */
+const CAT_PERIODS = {
+  6:6, 8:3, 9:4, 10:10, 12:12, 15:20, 16:6, 18:12, 20:10,
+  24:12, 27:36, 30:60, 32:24, 36:12, 40:30, 48:16, 60:60, 64:48,
+  72:36, 80:60, 96:48, 120:60, 128:96, 192:96, 256:192
+};
+
+function catGetN() { return +$('catSize').value; }
+
+function catApplyOnce(src, N) {
+  const dst = new Uint8ClampedArray(src.length);
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const nx = (x + y) % N;
+      const ny = (x + 2 * y) % N;
+      const si = (y * N + x) * 4;
+      const di = (ny * N + nx) * 4;
+      dst[di]     = src[si];
+      dst[di + 1] = src[si + 1];
+      dst[di + 2] = src[si + 2];
+      dst[di + 3] = src[si + 3];
+    }
+  }
+  return dst;
+}
+
+function catRenderTo(canvas, pixels, N) {
+  canvas.width  = canvas.clientWidth  || 192;
+  canvas.height = canvas.clientHeight || 192;
+  const ctx = canvas.getContext('2d');
+  const id = new ImageData(pixels, N, N);
+  // scale up
+  const offscreen = document.createElement('canvas');
+  offscreen.width = N; offscreen.height = N;
+  offscreen.getContext('2d').putImageData(id, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(offscreen, 0, 0, canvas.width, canvas.height);
+}
+
+function catAddThumb(pixels, N, label) {
+  const thumbs = $('catThumbs');
+  if (thumbs.children.length > 30) return; // cap at 30 thumbs
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'text-align:center;font-size:9px;color:#666;';
+  const c = document.createElement('canvas');
+  c.width = 40; c.height = 40;
+  c.style.cssText = 'border:1px solid #2a2a4a;border-radius:3px;display:block;';
+  const id = new ImageData(new Uint8ClampedArray(pixels), N, N);
+  const off = document.createElement('canvas');
+  off.width = N; off.height = N;
+  off.getContext('2d').putImageData(id, 0, 0);
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(off, 0, 0, 40, 40);
+  wrap.appendChild(c);
+  wrap.appendChild(document.createTextNode(label));
+  thumbs.appendChild(wrap);
+}
+
+function catReset() {
+  catN = catGetN();
+  catIter = 0;
+  catPlaying = false;
+  clearTimeout(catTimer);
+  $('catPlayBtn').textContent = '▶ Play';
+  $('catThumbs').innerHTML = '';
+  $('catIterLabel').textContent = '0';
+  $('catPeriodMsg').textContent = '';
+
+  // default image: colourful face
+  catPixels = new Uint8ClampedArray(catN * catN * 4);
+  catPresetFace();
+  catCurrent = new Uint8ClampedArray(catPixels);
+  catRenderTo($('catOutCanvas'), catCurrent, catN);
+  catAddThumb(catCurrent, catN, 'iter 0');
+  drawCatPeriodChart();
+  updateCatInfo();
+}
+
+function catPresetFace() {
+  catN = catGetN();
+  catPixels = new Uint8ClampedArray(catN * catN * 4);
+  const N = catN;
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const i = (y * N + x) * 4;
+      const cx = x / N - 0.5, cy = y / N - 0.5;
+      const r2 = cx * cx + cy * cy;
+      // face circle
+      let R = 255, G = 220, B = 150, A = 0;
+      if (r2 < 0.22) { R=255; G=220; B=150; A=255; }
+      // eyes
+      const le = (cx+0.15)*(cx+0.15) + (cy+0.1)*(cy+0.1);
+      const re = (cx-0.15)*(cx-0.15) + (cy+0.1)*(cy+0.1);
+      if (le < 0.007 || re < 0.007) { R=40; G=40; B=40; A=255; }
+      // smile arc
+      const sm = Math.abs(Math.sqrt(cx*cx+(cy-0.05)*(cy-0.05)) - 0.18);
+      if (sm < 0.025 && cy > 0.05) { R=180; G=60; B=60; A=255; }
+      catPixels[i] = R; catPixels[i+1] = G; catPixels[i+2] = B; catPixels[i+3] = A || 0;
+    }
+  }
+  catCurrent = new Uint8ClampedArray(catPixels);
+  catIter = 0;
+  $('catIterLabel').textContent = '0';
+  $('catThumbs').innerHTML = '';
+  catRenderTo($('catSrcCanvas'), catPixels, catN);
+  catRenderTo($('catOutCanvas'), catCurrent, catN);
+  catAddThumb(catCurrent, catN, 'iter 0');
+  updateCatInfo();
+}
+
+function catPresetGrid() {
+  catN = catGetN();
+  catPixels = new Uint8ClampedArray(catN * catN * 4);
+  const N = catN;
+  const block = Math.max(2, Math.floor(N / 6));
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const i = (y * N + x) * 4;
+      const bx = Math.floor(x / block), by = Math.floor(y / block);
+      const hue = ((bx + by * 3) * 47) % 360;
+      const [r, g, b] = hslToRgb(hue / 360, 0.7, 0.55);
+      catPixels[i] = r; catPixels[i+1] = g; catPixels[i+2] = b; catPixels[i+3] = 255;
+    }
+  }
+  catCurrent = new Uint8ClampedArray(catPixels);
+  catIter = 0;
+  $('catIterLabel').textContent = '0';
+  $('catThumbs').innerHTML = '';
+  catRenderTo($('catSrcCanvas'), catPixels, catN);
+  catRenderTo($('catOutCanvas'), catCurrent, catN);
+  catAddThumb(catCurrent, catN, 'iter 0');
+  updateCatInfo();
+}
+
+function catPresetText() {
+  catN = catGetN();
+  const N = catN;
+  const off = document.createElement('canvas');
+  off.width = N; off.height = N;
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, N, N);
+  ctx.fillStyle = '#7eb8f7';
+  ctx.font = `bold ${Math.floor(N * 0.35)}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('AI', N / 2, N / 2);
+  const id = ctx.getImageData(0, 0, N, N);
+  catPixels = new Uint8ClampedArray(id.data);
+  catCurrent = new Uint8ClampedArray(catPixels);
+  catIter = 0;
+  $('catIterLabel').textContent = '0';
+  $('catThumbs').innerHTML = '';
+  catRenderTo($('catSrcCanvas'), catPixels, catN);
+  catRenderTo($('catOutCanvas'), catCurrent, catN);
+  catAddThumb(catCurrent, catN, 'iter 0');
+  updateCatInfo();
+}
+
+function clearCatSrc() {
+  catN = catGetN();
+  catPixels = new Uint8ClampedArray(catN * catN * 4).fill(0);
+  // fill alpha
+  for (let i = 3; i < catPixels.length; i += 4) catPixels[i] = 255;
+  catCurrent = new Uint8ClampedArray(catPixels);
+  catIter = 0;
+  $('catIterLabel').textContent = '0';
+  $('catThumbs').innerHTML = '';
+  catRenderTo($('catSrcCanvas'), catPixels, catN);
+  catRenderTo($('catOutCanvas'), catCurrent, catN);
+  catAddThumb(catCurrent, catN, 'iter 0');
+  updateCatInfo();
+}
+
+function catStep() {
+  if (!catCurrent) catReset();
+  catCurrent = catApplyOnce(catCurrent, catN);
+  catIter++;
+  $('catIterLabel').textContent = catIter;
+  catRenderTo($('catOutCanvas'), catCurrent, catN);
+  catAddThumb(catCurrent, catN, 'iter ' + catIter);
+  updateCatInfo();
+}
+
+function catPlay() {
+  if (!catCurrent) catReset();
+  catPlaying = !catPlaying;
+  $('catPlayBtn').textContent = catPlaying ? '⏸ Pause' : '▶ Play';
+  if (catPlaying) scheduleCatFrame();
+}
+
+function scheduleCatFrame() {
+  if (!catPlaying) return;
+  const delay = Math.round(1200 / +$('catSpeed').value);
+  catTimer = setTimeout(() => {
+    catStep();
+    const period = CAT_PERIODS[catN];
+    if (period && catIter >= period) {
+      catPlaying = false;
+      $('catPlayBtn').textContent = '▶ Play';
+      $('catPeriodMsg').innerHTML =
+        `<span style="color:#7ef7b8">✓ Period ${period} reached — image is back to original!</span>`;
+    } else {
+      scheduleCatFrame();
+    }
+  }, delay);
+}
+
+function updateCatInfo() {
+  const period = CAT_PERIODS[catN];
+  let msg = `N = ${catN} | iteration ${catIter}`;
+  if (period) msg += ` | period = ${period}`;
+  $('catInfo').innerHTML = msg +
+    (catIter === 0
+      ? '. Press <strong>Play</strong> or <strong>Step +1</strong> to begin.'
+      : period && catIter % period === 0 && catIter > 0
+        ? ` — <span style="color:#7ef7b8">Returned to original! (multiple of period)</span>`
+        : '');
+}
+
+function drawCatPeriodChart() {
+  const canvas = $('catPeriodCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const entries = Object.entries(CAT_PERIODS).map(([n, p]) => ({ n: +n, p }))
+    .filter(e => e.n <= 130).sort((a, b) => a.n - b.n);
+
+  const pad = { l: 44, r: 16, t: 20, b: 36 };
+  const iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+  const maxN = Math.max(...entries.map(e => e.n));
+  const maxP = Math.max(...entries.map(e => e.p));
+
+  // axes
+  ctx.strokeStyle = '#3a3a6a'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b);
+  ctx.lineTo(W - pad.r, H - pad.b); ctx.stroke();
+
+  // axis labels
+  ctx.fillStyle = '#555'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Grid size N', pad.l + iW / 2, H - 4);
+  ctx.save(); ctx.translate(12, pad.t + iH / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Period', 0, 0); ctx.restore();
+
+  // bars
+  const barW = Math.max(4, iW / entries.length - 2);
+  entries.forEach((e, idx) => {
+    const x = pad.l + (e.n / maxN) * iW - barW / 2;
+    const barH = (e.p / maxP) * iH;
+    const y = H - pad.b - barH;
+    const active = e.n === catN;
+    ctx.fillStyle = active ? '#7ef7b8' : '#7eb8f755';
+    ctx.fillRect(x, y, barW, barH);
+    if (active) {
+      ctx.strokeStyle = '#7ef7b8'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, y, barW, barH);
+      ctx.fillStyle = '#7ef7b8'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center';
+      ctx.fillText(e.p, x + barW / 2, y - 4);
+    }
+  });
+
+  // x-axis ticks
+  ctx.fillStyle = '#555'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center';
+  entries.filter((_, i) => i % 3 === 0).forEach(e => {
+    const x = pad.l + (e.n / maxN) * iW;
+    ctx.fillText(e.n, x, H - pad.b + 12);
+  });
+}
+
+/* HSL helper */
+function hslToRgb(h, s, l) {
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q-p)*6*t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q-p)*(2/3-t)*6;
+      return p;
+    };
+    const q = l < 0.5 ? l*(1+s) : l+s-l*s, p = 2*l-q;
+    r = hue2rgb(p, q, h+1/3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h-1/3);
+  }
+  return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  drawNet();
+  initForward();
+  drawAct();
+  initTraining();
+  drawGD();
+  initPixelCanvas();
+  renderPixelCanvas();
+  updateMatrixDisplay();
+  catReset();
+});
+</script>
+</body>
+</html>
