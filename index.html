@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Learning — Interactive Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    header h1 { font-size: 2.4rem; color: #7eb8f7; margin-bottom: 0.4rem; }
+    header p  { color: #aaa; font-size: 1rem; }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: #12122a;
+      flex-wrap: wrap;
+    }
+    nav button {
+      padding: 0.5rem 1.2rem;
+      border: 1px solid #3a3a6a;
+      background: transparent;
+      color: #9ab;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    nav button:hover, nav button.active {
+      background: #7eb8f7;
+      color: #0f0f1a;
+      border-color: #7eb8f7;
+    }
+
+    .section {
+      display: none;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1.5rem 3rem;
+    }
+    .section.visible { display: block; }
+
+    h2 { font-size: 1.6rem; color: #7eb8f7; margin-bottom: 0.4rem; }
+    .subtitle { color: #888; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+    /* ── CARD ── */
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h3 { color: #aad4ff; margin-bottom: 0.8rem; font-size: 1.1rem; }
+
+    /* ── CANVAS WRAPPER ── */
+    .canvas-wrap {
+      width: 100%;
+      overflow-x: auto;
+      text-align: center;
+    }
+    canvas { display: block; margin: 0 auto; border-radius: 8px; }
+
+    /* ── CONTROLS ── */
+    .controls {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    .btn {
+      padding: 0.5rem 1.2rem;
+      background: #7eb8f7;
+      color: #0f0f1a;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #aad4ff; }
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid #3a3a6a;
+      color: #9ab;
+    }
+    .btn.secondary:hover { border-color: #7eb8f7; color: #7eb8f7; }
+
+    label { color: #9ab; font-size: 0.9rem; }
+    input[type=range] { accent-color: #7eb8f7; width: 120px; }
+    select {
+      background: #12122a;
+      border: 1px solid #3a3a6a;
+      color: #e0e0e0;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+    }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      background: #12122a;
+      border-left: 3px solid #7eb8f7;
+      padding: 0.8rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-top: 1rem;
+    }
+
+    /* ── ACTIVATION SECTION ── */
+    .act-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .act-card {
+      background: #12122a;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .act-card:hover, .act-card.selected { border-color: #7eb8f7; }
+    .act-card span { display: block; font-size: 0.8rem; color: #888; margin-top: 0.3rem; }
+
+    /* ── TRAINING ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── LOSS DISPLAY ── */
+    #lossDisplay {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #7eb8f7;
+    }
+    #epochDisplay { color: #888; font-size: 0.9rem; }
+
+    /* ── STEP EXPLAINER ── */
+    .steps { counter-reset: step; }
+    .step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      background: #7eb8f7;
+      color: #0f0f1a;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+    }
+    .step-text h4 { color: #aad4ff; margin-bottom: 0.2rem; }
+    .step-text p  { font-size: 0.9rem; color: #bbb; }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: #555;
+      font-size: 0.8rem;
+      border-top: 1px solid #1a1a2e;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Deep Learning — Interactive Guide</h1>
+  <p>University of Chicago &nbsp;|&nbsp; Civ Project 4</p>
+</header>
+
+<nav>
+  <button class="active" onclick="show('network')">1. Neural Network</button>
+  <button onclick="show('forward')">2. Forward Pass</button>
+  <button onclick="show('activation')">3. Activations</button>
+  <button onclick="show('training')">4. Training &amp; Loss</button>
+  <button onclick="show('howit')">5. How It Learns</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 1 — NETWORK VISUALISER
+═══════════════════════════════════════════════════ -->
+<section id="network" class="section visible">
+  <h2>Neural Network Architecture</h2>
+  <p class="subtitle">A neural network is made of layers of nodes (neurons) connected by weighted edges.</p>
+
+  <div class="card">
+    <h3>Build Your Network</h3>
+    <div class="controls">
+      <label>Input neurons: <strong id="inVal">3</strong>
+        <input type="range" min="1" max="6" value="3" oninput="document.getElementById('inVal').textContent=this.value; drawNet()">
+      </label>
+      <label>Hidden layers: <strong id="hlVal">2</strong>
+        <input type="range" min="1" max="4" value="2" oninput="document.getElementById('hlVal').textContent=this.value; drawNet()">
+      </label>
+      <label>Neurons/layer: <strong id="hnVal">4</strong>
+        <input type="range" min="1" max="7" value="4" oninput="document.getElementById('hnVal').textContent=this.value; drawNet()">
+      </label>
+      <label>Output neurons: <strong id="outVal">2</strong>
+        <input type="range" min="1" max="5" value="2" oninput="document.getElementById('outVal').textContent=this.value; drawNet()">
+      </label>
+    </div>
+    <div class="canvas-wrap" style="margin-top:1rem;">
+      <canvas id="netCanvas" width="860" height="360"></canvas>
+    </div>
+    <div class="info-box">
+      <strong>Total parameters:</strong> <span id="paramCount"></span> &nbsp;|&nbsp;
+      Hover over the diagram to see layer details.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>What are neurons and weights?</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">N</div>
+        <div class="step-text">
+          <h4>Neuron</h4>
+          <p>A single computational unit. It receives inputs, multiplies each by a <em>weight</em>, sums them, adds a <em>bias</em>, then passes the result through an activation function.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">W</div>
+        <div class="step-text">
+          <h4>Weight</h4>
+          <p>A number on each connection that controls how strongly one neuron influences the next. Training <em>adjusts</em> weights to make predictions more accurate.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">L</div>
+        <div class="step-text">
+          <h4>Layer</h4>
+          <p>A group of neurons at the same depth. The <span style="color:#7eb8f7">input layer</span> receives raw data, <span style="color:#f7c97e">hidden layers</span> learn representations, and the <span style="color:#7ef7b8">output layer</span> produces the prediction.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 2 — FORWARD PASS ANIMATION
+═══════════════════════════════════════════════════ -->
+<section id="forward" class="section">
+  <h2>Forward Pass</h2>
+  <p class="subtitle">Watch how a signal travels from input to output through the network.</p>
+
+  <div class="card">
+    <h3>Signal Propagation</h3>
+    <div class="canvas-wrap">
+      <canvas id="fwdCanvas" width="860" height="340"></canvas>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="startForward()">&#9654; Run Forward Pass</button>
+      <button class="btn secondary" onclick="resetForward()">Reset</button>
+      <label>Speed:
+        <input type="range" id="fwdSpeed" min="1" max="10" value="5">
+      </label>
+    </div>
+    <div class="info-box" id="fwdInfo">Press <strong>Run Forward Pass</strong> to animate.</div>
+  </div>
+
+  <div class="card">
+    <h3>The Math Inside One Neuron</h3>
+    <div style="text-align:center; padding:1rem 0;">
+      <svg width="420" height="100" viewBox="0 0 420 100" style="max-width:100%">
+        <defs>
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#7eb8f7"/>
+          </marker>
+        </defs>
+        <!-- inputs -->
+        <text x="10" y="28"  fill="#9ab" font-size="13">x₁</text>
+        <text x="10" y="58"  fill="#9ab" font-size="13">x₂</text>
+        <text x="10" y="88"  fill="#9ab" font-size="13">x₃</text>
+        <line x1="30" y1="25"  x2="120" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <line x1="30" y1="55"  x2="120" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <line x1="30" y1="85"  x2="120" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <text x="55" y="38"  fill="#f7c97e" font-size="11">w₁</text>
+        <text x="55" y="55"  fill="#f7c97e" font-size="11">w₂</text>
+        <text x="55" y="72"  fill="#f7c97e" font-size="11">w₃</text>
+        <!-- sigma box -->
+        <rect x="120" y="28" width="60" height="44" rx="8" fill="#1a1a3a" stroke="#7eb8f7"/>
+        <text x="150" y="56" fill="#7eb8f7" font-size="20" text-anchor="middle">Σ</text>
+        <!-- + bias -->
+        <text x="192" y="44" fill="#aaa" font-size="11">+b</text>
+        <line x1="180" y1="50" x2="230" y2="50" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arr)"/>
+        <!-- act box -->
+        <rect x="230" y="28" width="70" height="44" rx="8" fill="#1a1a3a" stroke="#7ef7b8"/>
+        <text x="265" y="56" fill="#7ef7b8" font-size="13" text-anchor="middle">f(z)</text>
+        <line x1="300" y1="50" x2="360" y2="50" stroke="#7ef7b8" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="370" y="54" fill="#7ef7b8" font-size="13">output</text>
+        <text x="225" y="22" fill="#888" font-size="10">activation</text>
+      </svg>
+    </div>
+    <p style="font-size:0.9rem; color:#bbb; text-align:center;">
+      z = w₁x₁ + w₂x₂ + w₃x₃ + b &nbsp;&nbsp;→&nbsp;&nbsp; output = f(z)
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 3 — ACTIVATION FUNCTIONS
+═══════════════════════════════════════════════════ -->
+<section id="activation" class="section">
+  <h2>Activation Functions</h2>
+  <p class="subtitle">Activation functions add non-linearity — without them the network is just matrix multiplication.</p>
+
+  <div class="card">
+    <h3>Choose a function</h3>
+    <div class="act-grid" id="actGrid">
+      <div class="act-card selected" onclick="selectAct('relu',this)">
+        <strong>ReLU</strong><span>f(x) = max(0, x)</span>
+      </div>
+      <div class="act-card" onclick="selectAct('sigmoid',this)">
+        <strong>Sigmoid</strong><span>f(x) = 1/(1+e⁻ˣ)</span>
+      </div>
+      <div class="act-card" onclick="selectAct('tanh',this)">
+        <strong>Tanh</strong><span>f(x) = (eˣ−e⁻ˣ)/(eˣ+e⁻ˣ)</span>
+      </div>
+      <div class="act-card" onclick="selectAct('leakyrelu',this)">
+        <strong>Leaky ReLU</strong><span>f(x) = x&gt;0 ? x : 0.1x</span>
+      </div>
+      <div class="act-card" onclick="selectAct('softmax',this)">
+        <strong>Softmax*</strong><span>Output probabilities</span>
+      </div>
+    </div>
+    <div class="canvas-wrap" style="margin-top:1.2rem;">
+      <canvas id="actCanvas" width="500" height="280"></canvas>
+    </div>
+    <div class="info-box" id="actInfo">ReLU is the most widely used hidden-layer activation. Simple and avoids vanishing gradients.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 4 — TRAINING & LOSS
+═══════════════════════════════════════════════════ -->
+<section id="training" class="section">
+  <h2>Training &amp; Loss</h2>
+  <p class="subtitle">Training adjusts weights so the network's predictions get closer to the true labels.</p>
+
+  <div class="card">
+    <h3>Watch the Loss Curve</h3>
+    <div class="two-col">
+      <div>
+        <div class="controls" style="margin-bottom:0.8rem;">
+          <label>Learning rate:
+            <select id="lrSelect">
+              <option value="0.5">0.5 (high)</option>
+              <option value="0.1" selected>0.1 (good)</option>
+              <option value="0.01">0.01 (slow)</option>
+              <option value="0.001">0.001 (very slow)</option>
+            </select>
+          </label>
+        </div>
+        <div class="controls">
+          <button class="btn" onclick="startTraining()">&#9654; Train</button>
+          <button class="btn secondary" onclick="resetTraining()">Reset</button>
+        </div>
+        <div style="margin-top:1.2rem;">
+          <div id="epochDisplay">Epoch: 0</div>
+          <div>Loss: <span id="lossDisplay">—</span></div>
+          <div style="margin-top:0.6rem; color:#888; font-size:0.85rem;" id="trainMsg"></div>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="lossCanvas" width="380" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>What is Loss?</h3>
+    <p style="font-size:0.9rem; color:#bbb; margin-bottom:0.8rem;">
+      Loss measures the gap between the network's prediction and the correct answer. Common loss functions:
+    </p>
+    <div class="two-col" style="gap:0.8rem;">
+      <div style="background:#12122a; padding:0.9rem; border-radius:8px;">
+        <strong style="color:#aad4ff;">Mean Squared Error</strong>
+        <p style="font-size:0.85rem; color:#bbb; margin-top:0.3rem;">
+          L = (1/n) Σ (ŷ − y)²<br>Used for regression tasks.
+        </p>
+      </div>
+      <div style="background:#12122a; padding:0.9rem; border-radius:8px;">
+        <strong style="color:#aad4ff;">Cross-Entropy</strong>
+        <p style="font-size:0.85rem; color:#bbb; margin-top:0.3rem;">
+          L = −Σ y·log(ŷ)<br>Used for classification tasks.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SECTION 5 — HOW IT LEARNS (BACKPROP)
+═══════════════════════════════════════════════════ -->
+<section id="howit" class="section">
+  <h2>How the Network Learns</h2>
+  <p class="subtitle">Backpropagation + gradient descent: the engine behind all deep learning.</p>
+
+  <div class="card">
+    <h3>The Learning Loop</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <h4>Forward Pass</h4>
+          <p>Feed input data through the network layer by layer to produce a prediction.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <h4>Compute Loss</h4>
+          <p>Compare the prediction to the true label using a loss function. A bigger error = higher loss.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <h4>Backpropagation</h4>
+          <p>Use the chain rule to calculate how much each weight contributed to the error — these are the <em>gradients</em>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <h4>Gradient Descent</h4>
+          <p>Nudge every weight in the direction that reduces the loss:
+          <code style="color:#7ef7b8; font-size:0.9rem;">w ← w − η · ∂L/∂w</code>
+          where η is the learning rate.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-text">
+          <h4>Repeat</h4>
+          <p>Iterate over thousands of batches and epochs. Each pass sharpens the weights until the loss converges.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Gradient Descent — Loss Surface</h3>
+    <p style="font-size:0.9rem; color:#bbb; margin-bottom:1rem;">
+      Each ball represents a weight position on the loss landscape. Gradient descent rolls it downhill toward the minimum.
+    </p>
+    <div class="canvas-wrap">
+      <canvas id="gdCanvas" width="600" height="260"></canvas>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="startGD()">&#9654; Animate</button>
+      <button class="btn secondary" onclick="resetGD()">Reset</button>
+      <label>LR: <input type="range" id="gdLR" min="1" max="20" value="8" style="width:80px"></label>
+    </div>
+  </div>
+</section>
+
+<footer>University of Chicago &nbsp;|&nbsp; Civ Project 4 — Deep Learning</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  $(id).classList.add('visible');
+  event.currentTarget.classList.add('active');
+  if (id === 'network')    drawNet();
+  if (id === 'forward')    initForward();
+  if (id === 'activation') drawAct();
+  if (id === 'training')   initTraining();
+  if (id === 'howit')      drawGD();
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 1 — NETWORK DRAW
+═══════════════════════════════════════════ */
+function getNetConfig() {
+  const inp = +$('inVal').textContent;
+  const hl  = +$('hlVal').textContent;
+  const hn  = +$('hnVal').textContent;
+  const out = +$('outVal').textContent;
+  const layers = [inp, ...Array(hl).fill(hn), out];
+  return layers;
+}
+
+function drawNet() {
+  const canvas = $('netCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const layers = getNetConfig();
+  const R = 14;
+  const layerX = layers.map((_, i) => 60 + i * ((W - 120) / (layers.length - 1)));
+
+  // compute params
+  let params = 0;
+  for (let i = 1; i < layers.length; i++) params += layers[i-1] * layers[i] + layers[i];
+  $('paramCount').textContent = params.toLocaleString() + ' weights & biases';
+
+  const colors = ['#7eb8f7', ...Array(layers.length - 2).fill('#f7c97e'), '#7ef7b8'];
+
+  // draw edges
+  ctx.globalAlpha = 0.18;
+  ctx.lineWidth = 1;
+  for (let l = 0; l < layers.length - 1; l++) {
+    const x1 = layerX[l], x2 = layerX[l+1];
+    const n1 = layers[l], n2 = layers[l+1];
+    for (let a = 0; a < n1; a++) {
+      const y1 = H/2 + (a - (n1-1)/2) * Math.min(50, (H-60)/n1);
+      for (let b = 0; b < n2; b++) {
+        const y2 = H/2 + (b - (n2-1)/2) * Math.min(50, (H-60)/n2);
+        ctx.strokeStyle = '#7eb8f7';
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // draw nodes
+  for (let l = 0; l < layers.length; l++) {
+    const n = layers[l];
+    const x = layerX[l];
+    for (let i = 0; i < n; i++) {
+      const y = H/2 + (i - (n-1)/2) * Math.min(50, (H-60)/n);
+      ctx.beginPath(); ctx.arc(x, y, R, 0, TAU);
+      ctx.fillStyle = colors[l] + '33';
+      ctx.fill();
+      ctx.strokeStyle = colors[l];
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    // label
+    const labels = ['Input', ...Array(layers.length-2).fill('').map((_,i)=>`H${i+1}`), 'Output'];
+    ctx.fillStyle = colors[l];
+    ctx.font = '11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[l], x, H - 8);
+    ctx.fillStyle = '#666';
+    ctx.fillText(layers[l] + (layers[l]===1?' neuron':' neurons'), x, H - 22 + (l%2)*12);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 2 — FORWARD PASS ANIMATION
+═══════════════════════════════════════════ */
+const FW_LAYERS = [3, 4, 4, 2];
+let fwdAnim = null, fwdStep = -1, fwdSignals = [];
+
+function getNeuronPos(canvas, layers, l, i) {
+  const W = canvas.width, H = canvas.height;
+  const x = 70 + l * ((W - 140) / (layers.length - 1));
+  const spacing = Math.min(55, (H - 60) / layers[l]);
+  const y = H/2 + (i - (layers[l]-1)/2) * spacing;
+  return {x, y};
+}
+
+function drawFwdBase(ctx, canvas, layers, activeLayer = -1, signals = []) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const colors = ['#7eb8f7', '#f7c97e', '#f7c97e', '#7ef7b8'];
+
+  // edges
+  for (let l = 0; l < layers.length - 1; l++) {
+    for (let a = 0; a < layers[l]; a++) {
+      const p1 = getNeuronPos(canvas, layers, l, a);
+      for (let b = 0; b < layers[l+1]; b++) {
+        const p2 = getNeuronPos(canvas, layers, l+1, b);
+        const active = activeLayer === l;
+        ctx.globalAlpha = active ? 0.7 : 0.12;
+        ctx.strokeStyle = active ? '#7eb8f7' : '#7eb8f7';
+        ctx.lineWidth = active ? 1.5 : 1;
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // nodes
+  for (let l = 0; l < layers.length; l++) {
+    for (let i = 0; i < layers[l]; i++) {
+      const {x, y} = getNeuronPos(canvas, layers, l, i);
+      const lit = l <= activeLayer;
+      ctx.beginPath(); ctx.arc(x, y, 14, 0, TAU);
+      ctx.fillStyle = lit ? colors[l] + '55' : colors[l] + '22';
+      ctx.fill();
+      ctx.strokeStyle = colors[l];
+      ctx.lineWidth = lit ? 2.5 : 1.5;
+      ctx.stroke();
+    }
+  }
+
+  // animated signals
+  signals.forEach(s => {
+    ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, TAU);
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = s.alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // labels
+  const lnames = ['Input', 'Hidden 1', 'Hidden 2', 'Output'];
+  for (let l = 0; l < layers.length; l++) {
+    const {x} = getNeuronPos(canvas, layers, l, 0);
+    ctx.fillStyle = colors[l];
+    ctx.font = '11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(lnames[l], x, H - 8);
+  }
+}
+
+function initForward() {
+  const canvas = $('fwdCanvas');
+  const ctx = canvas.getContext('2d');
+  drawFwdBase(ctx, canvas, FW_LAYERS);
+}
+
+function resetForward() {
+  clearTimeout(fwdAnim);
+  fwdStep = -1; fwdSignals = [];
+  const canvas = $('fwdCanvas');
+  drawFwdBase(canvas.getContext('2d'), canvas, FW_LAYERS);
+  $('fwdInfo').innerHTML = 'Press <strong>Run Forward Pass</strong> to animate.';
+}
+
+const fwdMessages = [
+  'Step 1: Raw input data enters the input layer (e.g. pixel values, features).',
+  'Step 2: Signals propagate to Hidden Layer 1 — each neuron computes Σ(wᵢxᵢ)+b then applies f(z).',
+  'Step 3: Hidden Layer 2 extracts higher-level patterns from layer 1 activations.',
+  'Step 4: The output layer produces the final prediction (e.g. class probabilities).'
+];
+
+function startForward() {
+  clearTimeout(fwdAnim);
+  fwdStep = 0;
+  animateForwardStep();
+}
+
+function animateForwardStep() {
+  const canvas = $('fwdCanvas');
+  const ctx = canvas.getContext('2d');
+  if (fwdStep >= FW_LAYERS.length) {
+    drawFwdBase(ctx, canvas, FW_LAYERS, FW_LAYERS.length - 1);
+    $('fwdInfo').innerHTML = '<strong>Done!</strong> The forward pass is complete. Output is ready.';
+    return;
+  }
+  $('fwdInfo').innerHTML = fwdMessages[fwdStep] || '';
+  const speed = 11 - +$('fwdSpeed').value;
+  let t = 0;
+  const from = fwdStep - 1;
+  const to   = fwdStep;
+
+  function frame() {
+    t++;
+    const sigs = [];
+    if (from >= 0) {
+      for (let a = 0; a < FW_LAYERS[from]; a++) {
+        for (let b = 0; b < FW_LAYERS[to]; b++) {
+          const p1 = getNeuronPos(canvas, FW_LAYERS, from, a);
+          const p2 = getNeuronPos(canvas, FW_LAYERS, to, b);
+          const prog = Math.min(t / 30, 1);
+          sigs.push({
+            x: p1.x + (p2.x - p1.x) * prog,
+            y: p1.y + (p2.y - p1.y) * prog,
+            alpha: 1 - prog * 0.5
+          });
+        }
+      }
+    }
+    drawFwdBase(ctx, canvas, FW_LAYERS, fwdStep, sigs);
+    if (t < 35) {
+      fwdAnim = setTimeout(frame, speed * 8);
+    } else {
+      fwdStep++;
+      fwdAnim = setTimeout(animateForwardStep, 400);
+    }
+  }
+  frame();
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 3 — ACTIVATION FUNCTIONS
+═══════════════════════════════════════════ */
+let currentAct = 'relu';
+
+const actFns = {
+  relu:      { fn: x => Math.max(0, x),               info: 'ReLU is default for hidden layers. Fast, no vanishing gradient for x>0. Dying ReLU can occur.' },
+  sigmoid:   { fn: x => 1/(1+Math.exp(-x)),            info: 'Sigmoid squashes output to (0,1). Good for binary output. Suffers from vanishing gradients in deep nets.' },
+  tanh:      { fn: x => Math.tanh(x),                  info: 'Tanh is zero-centered (−1,1). Often better than sigmoid in hidden layers.' },
+  leakyrelu: { fn: x => x > 0 ? x : 0.1*x,            info: 'Leaky ReLU fixes the dying neuron problem by allowing a small negative slope.' },
+  softmax:   { fn: x => 1/(1+Math.exp(-x)),            info: '*Softmax is a layer-wide operation (shown here as sigmoid shape). Converts logits to probabilities summing to 1. Used in output layer for multi-class.' }
+};
+
+function selectAct(name, el) {
+  currentAct = name;
+  document.querySelectorAll('.act-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  drawAct();
+  $('actInfo').textContent = actFns[name].info;
+}
+
+function drawAct() {
+  const canvas = $('actCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const fn = actFns[currentAct].fn;
+  const xMin = -5, xMax = 5;
+  const yMin = -1.5, yMax = 1.5;
+
+  function toScreen(x, y) {
+    return {
+      sx: (x - xMin) / (xMax - xMin) * W,
+      sy: H - (y - yMin) / (yMax - yMin) * H
+    };
+  }
+
+  // grid
+  ctx.strokeStyle = '#2a2a4a'; ctx.lineWidth = 1;
+  for (let x = xMin; x <= xMax; x++) {
+    const {sx} = toScreen(x, 0);
+    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+  }
+  for (let y = -1; y <= 1; y += 0.5) {
+    const {sy} = toScreen(0, y);
+    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
+  }
+
+  // axes
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+  const ox = toScreen(0, 0);
+  ctx.beginPath(); ctx.moveTo(0, ox.sy); ctx.lineTo(W, ox.sy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox.sx, 0); ctx.lineTo(ox.sx, H); ctx.stroke();
+
+  // axis labels
+  ctx.fillStyle = '#555'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+  for (let x = xMin+1; x < xMax; x++) {
+    const {sx, sy} = toScreen(x, 0);
+    ctx.fillText(x, sx, sy + 14);
+  }
+
+  // function curve
+  ctx.beginPath();
+  ctx.strokeStyle = '#7eb8f7'; ctx.lineWidth = 2.5;
+  for (let px = 0; px <= W; px++) {
+    const x = xMin + (px / W) * (xMax - xMin);
+    const y = fn(x);
+    const {sx, sy} = toScreen(x, Math.max(yMin, Math.min(yMax, y)));
+    px === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+
+  // derivative curve (dashed)
+  ctx.beginPath();
+  ctx.strokeStyle = '#f7c97e'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 4]);
+  const dx = 0.01;
+  for (let px = 0; px <= W; px++) {
+    const x = xMin + (px / W) * (xMax - xMin);
+    const dy = (fn(x + dx) - fn(x - dx)) / (2 * dx);
+    const {sx, sy} = toScreen(x, Math.max(yMin, Math.min(yMax, dy)));
+    px === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // legend
+  ctx.fillStyle = '#7eb8f7'; ctx.textAlign = 'left';
+  ctx.fillText('f(x)', 10, 20);
+  ctx.fillStyle = '#f7c97e';
+  ctx.fillText("f'(x) gradient", 10, 36);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 4 — TRAINING / LOSS
+═══════════════════════════════════════════ */
+let trainInterval = null, trainEpoch = 0, lossHistory = [];
+const TRUE_MIN_LOSS = 0.04;
+
+function lossForEpoch(epoch, lr) {
+  return TRUE_MIN_LOSS + (2.4 - TRUE_MIN_LOSS) * Math.exp(-lr * epoch * 0.035)
+       + (Math.random() - 0.5) * 0.04 * Math.exp(-epoch * 0.02);
+}
+
+function initTraining() {
+  trainEpoch = 0; lossHistory = [];
+  drawLossCanvas([]);
+  $('epochDisplay').textContent = 'Epoch: 0';
+  $('lossDisplay').textContent = '—';
+  $('trainMsg').textContent = '';
+}
+
+function resetTraining() {
+  clearInterval(trainInterval);
+  initTraining();
+}
+
+function startTraining() {
+  clearInterval(trainInterval);
+  if (trainEpoch > 0) initTraining();
+  const lr = +$('lrSelect').value;
+  trainInterval = setInterval(() => {
+    trainEpoch++;
+    const loss = lossForEpoch(trainEpoch, lr);
+    lossHistory.push(loss);
+    $('epochDisplay').textContent = `Epoch: ${trainEpoch}`;
+    $('lossDisplay').textContent = loss.toFixed(4);
+    if (trainEpoch === 1)  $('trainMsg').textContent = 'Training started...';
+    if (trainEpoch === 30) $('trainMsg').textContent = 'Loss decreasing nicely.';
+    if (trainEpoch === 80) $('trainMsg').textContent = 'Approaching convergence.';
+    if (trainEpoch >= 120) {
+      $('trainMsg').textContent = 'Converged!';
+      clearInterval(trainInterval);
+    }
+    drawLossCanvas(lossHistory);
+  }, 80);
+}
+
+function drawLossCanvas(history) {
+  const canvas = $('lossCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = {l:40, r:15, t:15, b:30};
+  const iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
+
+  // axes
+  ctx.strokeStyle = '#3a3a6a'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b); ctx.stroke();
+
+  if (history.length < 2) {
+    ctx.fillStyle = '#555'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('Press Train to see loss curve', W/2, H/2);
+    return;
+  }
+
+  const maxL = Math.max(...history) * 1.1;
+  const N = history.length;
+
+  // grid lines
+  ctx.strokeStyle = '#1e1e3a'; ctx.lineWidth = 1;
+  for (let y = 0; y <= 1; y += 0.25) {
+    const sy = pad.t + iH * (1 - y / maxL * maxL);
+    ctx.beginPath(); ctx.moveTo(pad.l, pad.t + iH*(1-y)); ctx.lineTo(W-pad.r, pad.t+iH*(1-y)); ctx.stroke();
+  }
+
+  // curve
+  ctx.beginPath();
+  ctx.strokeStyle = '#7eb8f7'; ctx.lineWidth = 2;
+  history.forEach((l, i) => {
+    const sx = pad.l + (i / (N-1 || 1)) * iW;
+    const sy = pad.t + iH * (1 - l / maxL);
+    i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  });
+  ctx.stroke();
+
+  // fill under
+  ctx.lineTo(pad.l + ((N-1)/(N-1||1))*iW, H-pad.b);
+  ctx.lineTo(pad.l, H-pad.b);
+  ctx.closePath();
+  ctx.fillStyle = '#7eb8f720';
+  ctx.fill();
+
+  // labels
+  ctx.fillStyle = '#666'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'right';
+  ctx.fillText(maxL.toFixed(1), pad.l - 4, pad.t + 4);
+  ctx.fillText('0', pad.l - 4, H - pad.b + 4);
+  ctx.textAlign = 'center';
+  ctx.fillText('Loss', pad.l - 28, H/2 - 20);
+  ctx.fillText('Epoch', W/2, H - 4);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 5 — GRADIENT DESCENT BALL
+═══════════════════════════════════════════ */
+let gdAnim = null, gdBall = null;
+
+function lossSurface(x) {
+  return 2.5 * Math.pow(Math.sin(x * 0.8 + 0.5), 2) + 0.5 * Math.pow(x - 1.5, 2) * 0.15 + 0.3;
+}
+function lossSurfaceDeriv(x) {
+  const dx = 0.001;
+  return (lossSurface(x + dx) - lossSurface(x - dx)) / (2 * dx);
+}
+
+function drawGD() {
+  const canvas = $('gdCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const xMin = -4, xMax = 6;
+  const yMin = 0, yMax = 4;
+  function toS(x, y) {
+    return { sx: (x - xMin)/(xMax-xMin)*W, sy: H - (y - yMin)/(yMax-yMin)*H };
+  }
+
+  // surface
+  ctx.beginPath();
+  ctx.strokeStyle = '#7eb8f7'; ctx.lineWidth = 2.5;
+  for (let px = 0; px <= W; px++) {
+    const x = xMin + (px/W)*(xMax-xMin);
+    const y = lossSurface(x);
+    const {sx, sy} = toS(x, Math.min(yMax, y));
+    px === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+
+  // fill under
+  const {sx: exSx, sy: exSy} = toS(xMax, 0);
+  const {sx: stSx, sy: stSy} = toS(xMin, 0);
+  ctx.lineTo(exSx, H); ctx.lineTo(stSx, H); ctx.closePath();
+  ctx.fillStyle = '#7eb8f712'; ctx.fill();
+
+  // axis labels
+  ctx.fillStyle = '#7eb8f7'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('Loss', 4, 16);
+  ctx.fillStyle = '#555'; ctx.textAlign = 'center';
+  ctx.fillText('Weight value →', W/2, H - 4);
+
+  // ball
+  if (gdBall) {
+    const {sx, sy} = toS(gdBall.x, lossSurface(gdBall.x));
+    // trail
+    if (gdBall.trail) {
+      gdBall.trail.forEach((t, i) => {
+        const {sx: tx, sy: ty} = toS(t.x, lossSurface(t.x));
+        ctx.beginPath(); ctx.arc(tx, ty, 3, 0, TAU);
+        ctx.fillStyle = `rgba(126,184,247,${0.1 + 0.5*(i/gdBall.trail.length)})`;
+        ctx.fill();
+      });
+    }
+    // shadow
+    ctx.beginPath(); ctx.arc(sx, sy + 6, 10, 0, TAU);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fill();
+    // ball
+    const grad = ctx.createRadialGradient(sx-3, sy-3, 1, sx, sy, 10);
+    grad.addColorStop(0, '#fff');
+    grad.addColorStop(1, '#f7c97e');
+    ctx.beginPath(); ctx.arc(sx, sy, 10, 0, TAU);
+    ctx.fillStyle = grad; ctx.fill();
+  }
+}
+
+function resetGD() {
+  clearInterval(gdAnim);
+  gdBall = null;
+  drawGD();
+}
+
+function startGD() {
+  clearInterval(gdAnim);
+  gdBall = { x: -3.2, trail: [] };
+  let iter = 0;
+  gdAnim = setInterval(() => {
+    const lr = +$('gdLR').value * 0.004;
+    const grad = lossSurfaceDeriv(gdBall.x);
+    gdBall.trail.push({ x: gdBall.x });
+    if (gdBall.trail.length > 60) gdBall.trail.shift();
+    gdBall.x -= lr * grad;
+    gdBall.x = Math.max(-4, Math.min(6, gdBall.x));
+    drawGD();
+    iter++;
+    if (iter > 200 || Math.abs(grad) < 0.005) clearInterval(gdAnim);
+  }, 40);
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  drawNet();
+  initForward();
+  drawAct();
+  initTraining();
+  drawGD();
+});
+</script>
+</body>
+</html>
